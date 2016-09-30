@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<meta charset="UTF-8">
+	<title>Generator</title>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap.min.css">
+	<link rel="stylesheet" href="bower_components/bootstrap/dist/css/bootstrap-theme.min.css">
+	<style>
+		.scroll {
+			width: 100%;
+		}
+	</style>
+</head>
+
+
+<body>
+<div class="container">
+	<div>
+		<h3>入力</h3>
+		<textarea id="inputData" rows="20" cols="150">
+		</textarea>
+	</div>
+	<button class="btn primary" onclick="startProcess();">生成</button><br/>
+	
+	<div class="scroll">
+		<h3>出力</h3>
+		<pre id="output">
+		</pre>
+	</div>
+
+</body>
+
+
+	<script type="text/javascript" src="bower_components/jquery/dist/jquery.min.js"></script>
+	<script type="text/javascript" src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+	<script type="text/javascript" src="app/processor.js"></script>
+	<script type="text/javascript">
+		function startProcess() {
+			var data = $('#inputData').val();
+			var proc = loadProcessor();
+			proc.start({ data: data }).then(function(result) {
+				$('#output').text(result.result);
+			}, function(err) {
+				console.error(err.result);
+			});
+		}
+		
+		function loadProcessor() {
+			return new processors.JavaCsvClassGenerator();
+		}
+	</script>
+</html>
