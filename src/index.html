@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html>
 <head>
 	<meta charset="UTF-8">
@@ -21,6 +21,10 @@
 		<textarea id="inputData" rows="20" cols="150">
 		</textarea>
 	</div>
+    <div>
+        <label><input type="radio" name="generatorType" checked="checked" value="ddl" /> DDL</label>
+        <label><input type="radio" name="generatorType" value="javaCsv" /> javaCsv</label>
+    </div>
 	<button class="btn primary" onclick="startProcess();">生成</button><br/>
 	
 	<div class="scroll">
@@ -29,12 +33,11 @@
 		</pre>
 	</div>
 
-</body>
-
-
 	<script type="text/javascript" src="bower_components/jquery/dist/jquery.min.js"></script>
 	<script type="text/javascript" src="bower_components/bootstrap/dist/js/bootstrap.min.js"></script>
+
 	<script type="text/javascript" src="app/processor.js"></script>
+    <script type="text/javascript" src="app/processors/table_ddl_generator.js"></script>
 	<script type="text/javascript">
 		function startProcess() {
 			var data = $('#inputData').val();
@@ -47,7 +50,16 @@
 		}
 		
 		function loadProcessor() {
-			return new processors.JavaCsvClassGenerator();
+		    var type = $('input[name=generatorType]:checked').val();
+		    var ret = null;
+		    switch (type) {
+		        case 'ddl': ret = new processors.TableDDLGenerator(); break;
+		        case 'javaCsv': ret = new processors.JavaCsvClassGenerator(); break;
+		        default:
+		            break;
+		    }
+		    return ret;
 		}
 	</script>
+</body>
 </html>
