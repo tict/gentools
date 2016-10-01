@@ -73,6 +73,6 @@
         },
     })
 
-    exports.processors = { JavaCsvClassGenerator: JavaCsvClassGenerator };
+    exports.processors.JavaCsvClassGenerator = JavaCsvClassGenerator;
 
 })(window);
