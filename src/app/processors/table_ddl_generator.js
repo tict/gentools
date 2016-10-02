@@ -109,11 +109,15 @@
             ret += '\n';
             ret += self.createCommonColumns();
             ret += ');\n';
+            ret += self.createComments(tableInfo);
             return ret;
         },
 
         createColumnDeclarationLine: function(str) {
             return '    ' + str + '\n';
+        },
+        createCommentDeclarationLine: function(str) {
+            return str + ';\n';
         },
 
         createCommonColumns : function() {
@@ -123,7 +127,33 @@
             ret += this.createColumnDeclarationLine('create_staff_id integer DEFAULT 0,');
             ret += this.createColumnDeclarationLine('update_staff_id integer DEFAULT 0,');
             ret += this.createColumnDeclarationLine('delete_flag integer DEFAULT 0,');
-            ret += this.createColumnDeclarationLine('version_no integer DEFAULT 0,');
+            ret += this.createColumnDeclarationLine('version_no integer DEFAULT 0');
+
+            return ret;
+        },
+
+        createComments: function (tableInfo) {
+            var self = this;
+            var tableName = self.modifyName(tableInfo.typeDeclaration.name);
+            var ret = '';
+
+            if (tableInfo.typeDeclaration.commentName)
+                ret += this.createCommentDeclarationLine('COMMENT ON TABLE ' + tableName + " IS '" + tableInfo.typeDeclaration.commentName + "'");
+
+            $.each(tableInfo.elements, function () {
+                var elm = this;
+                var colName = self.modifyName(elm.varName);
+                var commentName = elm.varCommentName;
+                ret += self.createCommentDeclarationLine('COMMENT ON COLUMN ' + tableName + '.' + colName + " IS '" + commentName + "'");
+            })
+
+            ret += '\n';
+            ret += self.createCommentDeclarationLine('COMMENT ON COLUMN ' + tableName + '.create_dt' + " IS '登録年月日'");
+            ret += self.createCommentDeclarationLine('COMMENT ON COLUMN ' + tableName + '.update_dt' + " IS '更新年月日'");
+            ret += self.createCommentDeclarationLine('COMMENT ON COLUMN ' + tableName + '.create_staff_id' + " IS '登録者ID'");
+            ret += self.createCommentDeclarationLine('COMMENT ON COLUMN ' + tableName + '.update_staff_id' + " IS '更新者ID'");
+            ret += self.createCommentDeclarationLine('COMMENT ON COLUMN ' + tableName + '.delete_flag' + " IS '削除フラグ'");
+            ret += self.createCommentDeclarationLine('COMMENT ON COLUMN ' + tableName + '.version_no' + " IS 'バージョン'");
 
             return ret;
         },
