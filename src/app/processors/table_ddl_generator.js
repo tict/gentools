@@ -28,6 +28,7 @@
 
                 return JSON.stringify(src, null, 4);
             } catch (err) {
+                console.error(err.stack);
                 throw err;
             }
         },
@@ -36,48 +37,55 @@
             var ret = {
                 ddl: '',
                 toString: function () { return ddl; },
-                elements: {
-                    varName: null,
-                    varType: null,
-                    varIndex: null,
-                    varCommentName: null,
-                }
+                elements: []
             };
-            var bodyDecs = ret.bodyDeclarations;
-            if (!bodyDecs)
-                return ret;
 
+            var bodyDecs = clzDec.bodyDeclarations;
             $.each(bodyDecs, function () {
                 var elm = this;
                 if (elm.node !== 'FieldDeclaration')
                     return;
+
+                var ddlElement = {
+                    varName: null,
+                    varType: null,
+                    varIndex: null,
+                    varCommentName: null
+                };
 
                 $.each(elm.fragments, function () {
                     var f = this;
                     if (f.node !== 'VariableDeclarationFragment')
                         return;
 
-                    ret.elements.varName = f.name.identifier;
+                    ddlElement.varName = f.name.identifier;
                 });
-
-                ret.elements.varType = elm.type.name.identifier;
 
                 var mods = elm.modifiers;
                 $.each(mods, function () {
                     var m = this;
-                    if (m.TypeName !== 'CSVColumn')
+                    if (m.node !== 'NormalAnnotation')
+                        return;
+                    if (m.typeName.identifier != 'CSVColumn')
                         return;
 
                     $.each(m.values, function () {
                         var v = this;
                         switch (v.name.identifier) {
-                            case 'columnIndex': ret.elements.varIndex = v.value.token; break;
-                            case 'columnName': ret.elements.varCommentName = v.value.escapedValue.replace('\\"', ''); break;
+                            case 'columnIndex': ddlElement.varIndex = v.value.token; break;
+                            case 'columnName': ddlElement.varCommentName = v.value.escapedValue.replace(/^"/, '').replace(/"$/, ''); break;
                         }
                     });
                 });
+
+                if (!ddlElement.varCommentName)
+                    return;
+
+                ddlElement.varType = elm.type.name.identifier;
+                ret.elements.push(ddlElement);
             });
 
+            return ret;
         }
     });
 
