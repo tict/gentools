@@ -20,8 +20,7 @@
                 var src = JavaParser.parse(opt.data);
                 if (src.types && src.types.length > 0) {
                     var result = self.createDdlFromParsedType(src.types[0]);
-                    console.log(result);
-                    //return result.toString();
+                    return result.toString();
                 } else {
 
                 }
@@ -36,9 +35,15 @@
         createDdlFromParsedType: function (clzDec) {
             var ret = {
                 ddl: '',
-                toString: function () { return ddl; },
+                toString: function () { return this.ddl; },
+                typeDeclaration: {
+                    name: null,
+                    commentName: null
+                },
                 elements: []
             };
+
+            ret.typeDeclaration.name = clzDec.name.identifier;
 
             var bodyDecs = clzDec.bodyDeclarations;
             $.each(bodyDecs, function () {
@@ -85,7 +90,46 @@
                 ret.elements.push(ddlElement);
             });
 
+            ret.ddl = this.createDdl(ret);
             return ret;
+        },
+
+        createDdl: function (tableInfo) {
+            var self = this;
+            var tableName = self.modifyName(tableInfo.typeDeclaration.name);
+            var ret = 'CREATE TABLE ' + tableName;
+            ret += '\n(\n';
+            ret += '    ' + tableName + '_id serial PRIMARY KEY,\n';
+
+            $.each(tableInfo.elements, function () {
+                var elm = this;
+                ret += self.createColumnDeclarationLine(self.modifyName(elm.varName) + ' text, -- ' + elm.varCommentName + ',');
+            })
+
+            ret += '\n';
+            ret += self.createCommonColumns();
+            ret += ');\n';
+            return ret;
+        },
+
+        createColumnDeclarationLine: function(str) {
+            return '    ' + str + '\n';
+        },
+
+        createCommonColumns : function() {
+            var ret = '';
+            ret += this.createColumnDeclarationLine('create_dt timestamp without time zone DEFAULT now(),');
+            ret += this.createColumnDeclarationLine('update_dt timestamp without time zone DEFAULT now(),');
+            ret += this.createColumnDeclarationLine('create_staff_id integer DEFAULT 0,');
+            ret += this.createColumnDeclarationLine('update_staff_id integer DEFAULT 0,');
+            ret += this.createColumnDeclarationLine('delete_flag integer DEFAULT 0,');
+            ret += this.createColumnDeclarationLine('version_no integer DEFAULT 0,');
+
+            return ret;
+        },
+
+        modifyName: function (str) {
+            return str.replace(/(?:^|\.?)([A-Z])/g, function (x,y){return "_" + y.toLowerCase()}).replace(/^_/, "");
         }
     });
 
